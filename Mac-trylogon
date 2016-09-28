@@ -1,0 +1,42 @@
+#coding=utf-8
+
+__author__ = 'leeleon'
+
+
+import re
+import urllib
+import urllib2
+
+
+
+#proxy http://127.0.0.1:16823/
+
+
+strDestURLAdd = 'http://www.baidu.com'
+
+valueDest = {'name':'Jason Silver',
+         'location':'China Mainland',
+         'language':'Chinese',
+         'Code language':'python'}
+
+
+dataDest = urllib.urlencode(valueDest)
+
+dicHeaders = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'}
+
+try:
+
+    req = urllib2.Request(strDestURLAdd,dataDest,dicHeaders)
+
+    responseTT = urllib2.urlopen(req)
+
+    strHtml = responseTT.read()
+    print(strHtml)
+
+except IOError,msg:
+    print('begin expcet')
+
+    print(msg)
+
+
+
