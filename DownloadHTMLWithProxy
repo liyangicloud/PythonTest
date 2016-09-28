@@ -40,8 +40,6 @@ try:
 
 
 
-
-
     rcEd2kAdd = re.compile(r'(ed2k://\|file\|.+?\|/)">|(http://.+?\.torrent)')
 
     listMMsAdd = rcEd2kAdd.findall(strHtml)
