@@ -1,0 +1,60 @@
+#coding=utf-8
+__author__ = 'adm'
+import re
+import urllib
+import sys,urllib2,cookielib
+
+def fnDownloadHtml(url):
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookielib.CookieJar()))
+    urllib2.proxy_bypass("127.0.0.1:8187")
+    opener.addheaders = [('User-agent', 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.76 Mobile Safari/537.36')]
+    f = opener.open(url)
+    s = f.read()
+    f.close()
+    return s
+
+def fnDownloadHtmlA(url):
+    headers1 = {'User-agent' : 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:22.0) Gecko/20100101 Firefox/22.0'}
+    request = urllib2.Request(url, headers = headers1)
+    home_page = urllib2.urlopen(request)
+    s = home_page.read()
+    home_page.close()
+    return s
+
+
+
+try:
+    strDestURL = 'http://www.zsvcd.com/12557.html'
+  #  strDestURL = "http://www.sohu.com"
+
+ #   page = urllib.urlopen(strDestURL)
+ #   strHtml = page.read()
+ #   print strHtml
+
+
+
+
+    strHtml = fnDownloadHtml(strDestURL)
+    print strHtml
+
+
+
+
+
+
+    rcEd2kAdd = re.compile(r'(ed2k://\|file\|.+?\|/)">|(http://.+?\.torrent)')
+
+    listMMsAdd = rcEd2kAdd.findall(strHtml)
+
+    for item in listMMsAdd:
+        print item
+
+    print len(listMMsAdd)
+
+
+except NameError,e:
+    print e
+    
+    
+    
+    
