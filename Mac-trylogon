@@ -16,7 +16,8 @@ import cookielib
 #代理服务器需要进行参数传入设置
 def fnDownloadhtmlWithProxyDefault(strURL):
 
-    handlerProxy = urllib2.ProxyHandler({'http':'127.0.0.1:8787'})
+    #http://John Doe:mysecret007@proxy.myisp.com:3128
+    handlerProxy = urllib2.ProxyHandler({'http':'http://127.0.0.1:8787'})
     openerProxy = urllib2.build_opener(handlerProxy)
     dicHeaders = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
               #伪装成mac os 的浏览器进行访问
@@ -33,7 +34,7 @@ def fnDownloadhtmlWithProxyDefault(strURL):
         strHtml = responseTT.read()
         responseTT.close()
 
-        #strHtml = unicode(strHtml,"GBK").encode('utf-8')
+        strHtml = unicode(strHtml,"GBK").encode('utf-8')
 
         strFinalURL = responseTT.geturl()
         print(strHtml)
