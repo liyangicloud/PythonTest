@@ -6,13 +6,65 @@ __author__ = 'leeleon'
 import re
 import urllib
 import urllib2
-
+import cookielib
 
 
 #proxy http://127.0.0.1:16823/
 
+#使用http_proxy环境变量来控制URLLib2的代理设置
+#该函数可以全局使用，可以任意拷贝
+#代理服务器需要进行参数传入设置
+def fnDownloadhtmlWithProxyDefault(strURL):
+
+    handlerProxy = urllib2.ProxyHandler({'http':'127.0.0.1:8787'})
+    openerProxy = urllib2.build_opener(handlerProxy)
+    dicHeaders = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+              #伪装成mac os 的浏览器进行访问
+              'Referer':'http://www.baidu.com',
+              #反盗链控制选项referer，检查访问该网址的是不是自己认同的请求者
+              #主要用于在使用服务器提供的 RESTful 或 SOAP 服务时， Content-Type 设置错误会导致服务器拒绝服务
+              'Content-Type':'text/html;charset=utf-8'}
+
+#构造http的请求对象，可以自定义header，data数据
+    req = urllib2.Request(strURL,None,dicHeaders)
+    try:
+        responseTT = openerProxy.open(req,timeout = 50)
+
+        strHtml = responseTT.read()
+        responseTT.close()
+
+        #strHtml = unicode(strHtml,"GB2312").encode('utf-8')
+
+        strFinalURL = responseTT.geturl()
+        print(strHtml)
+        print 'liyang',strFinalURL
+        print responseTT.info()
+        return strHtml
+    except Exception,msg:
+        print '函数使用代理服务器抛出异常'
+        print(Exception,msg)
+        print(msg)
+        if hasattr(msg, 'reason'):
+            print 'Reason: ', msg.reason
+        elif hasattr(msg, 'code'):
+            print 'Error code: ', msg.code
+
+
+
+    return ''
+
+def fnTestCookie(strDestURLAdd):
+    cookie = cookielib.CookieJar()
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookie))
+
+    response = opener.open(strDestURLAdd)
+    for item in cookie:
+        print 'Name = '+item.name ,'  :  ','Value = '+item.value
+
+
 
 strDestURLAdd = 'http://www.baidu.com'
+strCL = 'http://t66y.com/thread0806.php?fid=7'
 
 valueDest = {'name':'Jason Silver',
          'location':'China Mainland',
@@ -22,21 +74,39 @@ valueDest = {'name':'Jason Silver',
 
 dataDest = urllib.urlencode(valueDest)
 
-dicHeaders = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'}
+dicHeaders = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+              #伪装成mac os 的浏览器进行访问
+              'Referer':'http://www.jiuyuhuamao.com',
+              #反盗链控制选项referer，检查访问该网址的是不是自己认同的请求者
+              #主要用于在使用服务器提供的 RESTful 或 SOAP 服务时， Content-Type 设置错误会导致服务器拒绝服务
+              'Content-Type':'text/html;charset=utf-8'}
+
+#构造http的请求对象，可以自定义header，data数据
+req = urllib2.Request(strDestURLAdd,None,dicHeaders)
+#req.set_proxy('127.0.0.1:16823','http')
+#openerTT  = urllib2.build_opener()
+#openerTT.add_handler()
+#urllib2.OpenerDirector
+#urllib2.proxy_bypass()
+
 
 try:
-
-    req = urllib2.Request(strDestURLAdd,dataDest,dicHeaders)
-
     responseTT = urllib2.urlopen(req)
 
     strHtml = responseTT.read()
-    print(strHtml)
+    strFinalURL = responseTT.geturl()
+#    print(strHtml)
+    print strFinalURL
+#    print responseTT.info()
 
-except IOError,msg:
+except Exception,msg:
     print('begin expcet')
-
+    print(Exception,msg)
     print(msg)
+    if hasattr(msg, 'reason'):
+        print 'Reason: ', msg.reason
+    elif hasattr(msg, 'code'):
+        print 'Error code: ', msg.code
 
 
-
+fnDownloadhtmlWithProxyDefault(strCL)
