@@ -33,7 +33,7 @@ def fnDownloadhtmlWithProxyDefault(strURL):
         strHtml = responseTT.read()
         responseTT.close()
 
-        #strHtml = unicode(strHtml,"GB2312").encode('utf-8')
+        #strHtml = unicode(strHtml,"GBK").encode('utf-8')
 
         strFinalURL = responseTT.geturl()
         print(strHtml)
