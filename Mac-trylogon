@@ -7,7 +7,8 @@ import re
 import urllib
 import urllib2
 import cookielib
-
+from bs4 import BeautifulSoup
+from HTMLParser import HTMLParser
 
 #proxy http://127.0.0.1:16823/
 
@@ -26,10 +27,15 @@ def fnDownloadhtmlWithProxyDefault(strURL):
               #主要用于在使用服务器提供的 RESTful 或 SOAP 服务时， Content-Type 设置错误会导致服务器拒绝服务
               'Content-Type':'text/html;charset=utf-8'}
 
-#构造http的请求对象，可以自定义header，data数据
+    #构造http的请求对象，可以自定义header，data数据
+    valueDest = {'name':'Jason Silver',
+                 'location':'China Mainland',
+                 'language':'Chinese',
+                 'Code language':'python'}
+    dataDest = urllib.urlencode(valueDest)
     req = urllib2.Request(strURL,None,dicHeaders)
     try:
-        responseTT = openerProxy.open(req,timeout = 50)
+        responseTT = openerProxy.open(req,timeout = 20)
 
         strHtml = responseTT.read()
         responseTT.close()
@@ -52,20 +58,170 @@ def fnDownloadhtmlWithProxyDefault(strURL):
 
 
 
-    return ''
+    return 'Finish the whole function!'
 
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#*******函数代码说明
+'''
+函数名称：
+函数功能：测试cookielib的使用
+'''
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 def fnTestCookie(strDestURLAdd):
-    cookie = cookielib.CookieJar()
-    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookie))
 
-    response = opener.open(strDestURLAdd)
-    for item in cookie:
-        print 'Name = '+item.name ,'  :  ','Value = '+item.value
+    dicHeaders = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+              #伪装成mac os 的浏览器进行访问
+              'Referer':'http://www.baidu.com',
+              #反盗链控制选项referer，检查访问该网址的是不是自己认同的请求者
+              #主要用于在使用服务器提供的 RESTful 或 SOAP 服务时， Content-Type 设置错误会导致服务器拒绝服务
+              'Content-Type':'text/html;charset=utf-8'}
+
+    #构造http的请求对象，可以自定义header，data数据
+    valueDest = {'name':'Jason Silver',
+                 'location':'China Mainland',
+                 'language':'Chinese',
+                 'Code language':'python'}
+    dataDest = urllib.urlencode(valueDest) #必须使用urllib进行编码
+
+    #构造合适的request对象，用于后面的发送操作
+    req = urllib2.Request(strDestURLAdd,None,dicHeaders)
+
+    #以下代码构造一个使用cookie的opener
+    cjTestLy = cookielib.CookieJar()
+    openerLy = urllib2.build_opener(urllib2.HTTPCookieProcessor(cjTestLy))
+
+    #构造代理服务器的handler，加入到cookie的opener中
+    handlerProxy = urllib2.ProxyHandler({'http':'http://127.0.0.1:8787'})
+    openerLy.add_handler(handlerProxy)
+    #opener创建完成
+    try:
+        responseTT = openerLy.open(req,timeout = 10)
+
+        strHtml = responseTT.read()
+        strHtml = unicode(strHtml,"GBK").encode('utf-8')
+        strFinalURL = responseTT.geturl()
+       # print(strHtml)
+
+        print 'liyangTestCookielib',strFinalURL
+        #print responseTT.info()
+        print '输出网址：',strFinalURL,'的cookie信息'
+        for item in cjTestLy:
+           print 'Name = '+item.name ,'  :  ','Value = '+item.value
+        print 'cookie信息输出结束！'
+
+        responseTT.close()
+        print 'liyangTestCookielib finish!'
+
+        return strHtml
+    except Exception,msg:
+        print '函数使用cookielib抛出异常'
+        print(Exception,msg)
+        print(msg)
+        if hasattr(msg, 'reason'):
+            print 'Reason: ', msg.reason
+        elif hasattr(msg, 'code'):
+            print 'Error code: ', msg.code
 
 
 
-strDestURLAdd = 'http://www.baidu.com'
-strCL = 'http://t66y.com/thread0806.php?fid=7'
+    return 'Finish the whole function!'
+
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#*******函数代码说明
+'''
+函数名称：
+函数功能：写文件
+'''
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+def fnWriteTxtFile(strFileContent):
+    try:
+        fileTxt = open('F:\\PyPrj\\TestTempTxt\\a.txt',"w")
+        fileTxt.write(strFileContent)
+        fileTxt.close()
+    except Exception,msg:
+        print '函数使用文件写入操作抛出异常'
+        print(Exception,msg)
+        print(msg)
+        if hasattr(msg, 'reason'):
+            print 'Reason: ', msg.reason
+        elif hasattr(msg, 'code'):
+            print 'Error code: ', msg.code
+
+
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#*******函数代码说明
+'''
+函数名称：
+函数功能：不适用代理进行下载
+'''
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+def fnDownloadHtml(strDestURLAdd):
+
+    dicHeaders = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+              #伪装成mac os 的浏览器进行访问
+              'Referer':'http://www.baidu.com',
+              #反盗链控制选项referer，检查访问该网址的是不是自己认同的请求者
+              #主要用于在使用服务器提供的 RESTful 或 SOAP 服务时， Content-Type 设置错误会导致服务器拒绝服务
+              'Content-Type':'text/html;charset=utf-8'}
+
+    #构造http的请求对象，可以自定义header，data数据
+    valueDest = {'name':'Jason Silver',
+                 'location':'China Mainland',
+                 'language':'Chinese',
+                 'Code language':'python'}
+    dataDest = urllib.urlencode(valueDest) #必须使用urllib进行编码
+
+    #构造合适的request对象，用于后面的发送操作
+    req = urllib2.Request(strDestURLAdd,None,dicHeaders)
+
+    #以下代码构造一个使用cookie的opener
+    cjTestLy = cookielib.CookieJar()
+    openerLy = urllib2.build_opener(urllib2.HTTPCookieProcessor(cjTestLy))
+
+    #opener创建完成
+    try:
+        responseTT = openerLy.open(req,timeout = 20)
+
+        strHtml = responseTT.read()
+        strFinalURL = responseTT.geturl()
+       # print(strHtml)
+
+        print 'liyangDownloadHtml:',strFinalURL
+        #print responseTT.info()
+        '''
+        print '输出网址：',strFinalURL,'的cookie信息'
+        for item in cjTestLy:
+           print 'Name = '+item.name ,'  :  ','Value = '+item.value
+        print 'cookie信息输出结束！'
+        '''
+
+        responseTT.close()
+        print 'liyangDownloadHtml finish!'
+
+        return strHtml
+    except Exception,msg:
+        print '函数使用cookielib抛出异常'
+        print(Exception,msg)
+        print(msg)
+        if hasattr(msg, 'reason'):
+            print 'Reason: ', msg.reason
+        elif hasattr(msg, 'code'):
+            print 'Error code: ', msg.code
+
+
+
+    return 'Finish the whole function!'
+
+#*************************************************************************************
+#*************************************************************************************
+#*******以下代码为main代码部分，顺序进行执行
+#*************************************************************************************
+#*************************************************************************************
+
+strURLBaidu = 'http://www.baidu.com'
+strURLBaidu = 'https://www.douban.com/group/topic/23755789/?author=1#!/i!/ckDefault'
+strURLCL = 'http://t66y.com/thread0806.php?fid=7'
+#strCL = 'https://www.google.com.hk/'
 
 valueDest = {'name':'Jason Silver',
          'location':'China Mainland',
@@ -83,22 +239,29 @@ dicHeaders = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) Appl
               'Content-Type':'text/html;charset=utf-8'}
 
 #构造http的请求对象，可以自定义header，data数据
-req = urllib2.Request(strDestURLAdd,None,dicHeaders)
+req = urllib2.Request(strURLBaidu,None,dicHeaders)
 #req.set_proxy('127.0.0.1:16823','http')
 #openerTT  = urllib2.build_opener()
 #openerTT.add_handler()
 #urllib2.OpenerDirector
 #urllib2.proxy_bypass()
 
+#构造包含cookie的opener对象
 
 try:
+    print 'I am try code!'
+    """
     responseTT = urllib2.urlopen(req)
 
     strHtml = responseTT.read()
     strFinalURL = responseTT.geturl()
 #    print(strHtml)
-    print strFinalURL
+#    print strFinalURL
 #    print responseTT.info()
+    responseTT.close()
+"""
+
+
 
 except Exception,msg:
     print('begin expcet')
@@ -110,4 +273,66 @@ except Exception,msg:
         print 'Error code: ', msg.code
 
 
-fnDownloadhtmlWithProxyDefault(strCL)
+#fnDownloadhtmlWithProxyDefault(strCL)
+strHtml = fnDownloadHtml(strURLBaidu)
+#strHtml = fnTestCookie(strURLCL)
+#print strHtml
+
+
+bsLY = BeautifulSoup(strHtml,'html.parser')
+
+
+
+
+
+#测试beautifulsoup的各项功能
+print '@@@@@@@@@@@@@@Beautiful soup 测试开始:'
+
+
+#查找特定属性的标签，
+attrsTarget = {'href':'javascript:;','name':'ime_py11'}
+for xTT in bsLY.findAll(attrs = attrsTarget):
+    print '#########'
+    print xTT
+
+print '*******************:'
+#因为beautifulsoup使用的unicode编码，所以正则表达式中的汉字必须也使用unicode编码。否则无法完成匹配
+for xTT in bsLY.findAll(text = re.compile(u'^百度111')):
+    print '#########'
+    print xTT
+
+#type()类型判断函数，可以通过type(xTT)判断得到的变量是什么类型
+
+
+#以上代码仅对tag进行检索
+#以下代码对soup对象进行修改和删除
+print '$$$$$$$$$$$$$$$$$$$$$$$进行beautifulsoup对象的修改和删除操作'
+
+#删除script和style类型的所有标签
+for xTT in bsLY.findAll('script'):
+    xTT.extract()
+for xTT in bsLY.findAll('style'):
+    xTT.extract()
+
+reHtmlNote = re.compile('<!--.*?-->')
+reHtmlpattern = re.compile('<[^>]*>')
+strPureTxt = reHtmlNote.sub('',bsLY.prettify())
+strPureTxt = reHtmlpattern.sub('',strPureTxt)
+
+#去除文本中的空白行
+reBank = re.compile('^\s[\s]*\s$',re.M)
+strPureTxt = reBank.sub('',strPureTxt)
+
+#去除文本中的爽行
+reRandN = re.compile('\n\n')
+strPureTxt = reRandN.sub('\n',strPureTxt)
+
+#去除文本中的文字前的空白字符
+reBankBeforTxt = re.compile('^\s\s*',re.M)
+strPureTxt = reBankBeforTxt.sub('',strPureTxt)
+
+
+strTT = bsLY.prettify()
+#进行文件写入操作前，必须将字符串编码转变为ascii或者utf-8，否则就会出现写入错误
+strTT = strTT.encode('utf-8')
+fnWriteTxtFile(strTT)
