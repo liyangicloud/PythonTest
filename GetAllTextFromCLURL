@@ -1,0 +1,397 @@
+#coding=utf-8
+
+__author__ = 'leeleon'
+
+
+import re
+import urllib
+import urllib2
+import cookielib
+from bs4 import BeautifulSoup
+from HTMLParser import HTMLParser
+
+#proxy http://127.0.0.1:16823/
+#win10 chrome    'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36'
+#mac os chrome   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'
+
+
+class CDownloadHtml(object):
+    def __init__(self):
+        object.__init__(self)
+        #在此初始化该对象的所有属性
+        #所取html的目标地址
+        self.m_strURL = 'http://www.baidu.com' #默认访问百度主页
+        #最终所取得html的目标地址
+        self.m_strFinalURL = ''
+
+        #html内容，以utf-8格式存放
+        self.m_strHtml = ''
+
+        #存储cookie，该类的实例，会首先构建一个空的cookie，首次请求后的cookie继续保留，如果更换url地址后，进行下一次请求，在仍会使用旧有的cookie
+        self.m_cjCookieJar = cookielib.CookieJar()
+        self.m_openerLy = urllib2.build_opener(urllib2.HTTPCookieProcessor( self.m_cjCookieJar))
+
+        #构造代理服务器的handler，加入到cookie的opener中
+        handlerProxy = urllib2.ProxyHandler({'http':'http://127.0.0.1:8787'})
+        self.m_openerLy.add_handler(handlerProxy)
+        #opener创建完成
+
+        self.m_dicHeaders = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36',
+              #伪装成mac os 的浏览器进行访问
+              'Referer':'http://www.baidu.com',
+              #反盗链控制选项referer，检查访问该网址的是不是自己认同的请求者
+              #主要用于在使用服务器提供的 RESTful 或 SOAP 服务时， Content-Type 设置错误会导致服务器拒绝服务
+              'Content-Type':'text/html;charset=utf-8'}
+
+        #构造http的请求对象，可以自定义header，data数据
+        self.m_dicPostData = {'name':'Jason Silver',
+                 'location':'China Mainland',
+                 'language':'Chinese',
+                 'Code language':'python'}
+        self.m_codePostData = urllib.urlencode(self.m_dicPostData) #必须使用urllib进行编码
+
+        #构造合适的request对象，用于后面的发送操作
+        self.m_req = urllib2.Request("http://www.baidu.com",None,self.m_dicHeaders)
+
+
+
+    def GetHtmlWithURL(self,strURL):
+        pass
+
+    def ParseTheHtml(self):
+        pass
+
+    def ReEncodeTheHtmlIntoUTF8(self,strOriginalHtml):
+        #子类必须重写该函数，根据所获得的strOriginalHtml的编码格式，转换为utf-8码，然后存储于strHtml
+        self.m_strHtml = strOriginalHtml
+
+
+
+
+
+#使用http_proxy环境变量来控制URLLib2的代理设置
+#该函数可以全局使用，可以任意拷贝
+#代理服务器需要进行参数传入设置
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#*******函数代码说明
+'''
+函数名称：
+函数功能：使用cookielib和proxy进行网页下载
+'''
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+def fnDownloadHtmlWithProxyAndCookie(strDestURLAdd):
+
+    dicHeaders = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36',
+              #伪装成win10 chrome 的浏览器进行访问
+              'Referer':'http://www.baidu.com',
+              #反盗链控制选项referer，检查访问该网址的是不是自己认同的请求者
+              #主要用于在使用服务器提供的 RESTful 或 SOAP 服务时， Content-Type 设置错误会导致服务器拒绝服务
+              'Content-Type':'text/html;charset=utf-8'}
+
+    #构造http的请求对象，可以自定义header，data数据
+    valueDest = {'name':'Jason Silver',
+                 'location':'China Mainland',
+                 'language':'Chinese',
+                 'Code language':'python'}
+    dataDest = urllib.urlencode(valueDest) #必须使用urllib进行编码
+
+    #构造合适的request对象，用于后面的发送操作
+    req = urllib2.Request(strDestURLAdd,None,dicHeaders)
+
+    #以下代码构造一个使用cookie的opener
+    cjTestLy = cookielib.CookieJar()
+    openerLy = urllib2.build_opener(urllib2.HTTPCookieProcessor(cjTestLy))
+
+    #构造代理服务器的handler，加入到cookie的opener中
+    handlerProxy = urllib2.ProxyHandler({'http':'http://127.0.0.1:8787'})
+    openerLy.add_handler(handlerProxy)
+    #opener创建完成
+    try:
+        responseTT = openerLy.open(req,timeout = 15)
+
+        strHtml = responseTT.read()
+        strHtml = unicode(strHtml,"GBK").encode('utf-8')
+        strFinalURL = responseTT.geturl()
+       # print(strHtml)
+
+        print 'liyangTestCookielib',strFinalURL
+        #print responseTT.info()
+        print '输出网址：',strFinalURL,'的cookie信息'
+        for item in cjTestLy:
+           print 'Name = '+item.name ,'  :  ','Value = '+item.value
+        print 'cookie信息输出结束！'
+
+        responseTT.close()
+        print 'liyangTestCookielib finish!'
+
+        return strHtml #返回的是已经转化为utf-8编码的html文本
+    except Exception,msg:
+        print '函数使用cookielib抛出异常'
+        print(Exception,msg)
+        print(msg)
+        if hasattr(msg, 'reason'):
+            print 'Reason: ', msg.reason
+        elif hasattr(msg, 'code'):
+            print 'Error code: ', msg.code
+
+
+
+    return 'Finish the whole function!'
+
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#*******函数代码说明
+'''
+函数名称：
+函数功能：写文件
+'''
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+def fnWriteTxtFile(strFileContent):
+    try:
+        fileTxt = open('F:\\PyPrj\\TestTempTxt\\a.txt',"w")
+        fileTxt.write(strFileContent)
+        fileTxt.close()
+    except Exception,msg:
+        print '函数使用文件写入操作抛出异常'
+        print(Exception,msg)
+        print(msg)
+        if hasattr(msg, 'reason'):
+            print 'Reason: ', msg.reason
+        elif hasattr(msg, 'code'):
+            print 'Error code: ', msg.code
+
+
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#*******函数代码说明
+'''
+函数名称：
+函数功能：不适用代理进行下载
+'''
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+def fnDownloadHtml(strDestURLAdd):
+
+    dicHeaders = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+              #伪装成mac os 的浏览器进行访问
+              'Referer':'http://www.baidu.com',
+              #反盗链控制选项referer，检查访问该网址的是不是自己认同的请求者
+              #主要用于在使用服务器提供的 RESTful 或 SOAP 服务时， Content-Type 设置错误会导致服务器拒绝服务
+              'Content-Type':'text/html;charset=utf-8'}
+
+    #构造http的请求对象，可以自定义header，data数据
+    valueDest = {'name':'Jason Silver',
+                 'location':'China Mainland',
+                 'language':'Chinese',
+                 'Code language':'python'}
+    dataDest = urllib.urlencode(valueDest) #必须使用urllib进行编码
+
+    #构造合适的request对象，用于后面的发送操作
+    req = urllib2.Request(strDestURLAdd,None,dicHeaders)
+
+    #以下代码构造一个使用cookie的opener
+    cjTestLy = cookielib.CookieJar()
+    openerLy = urllib2.build_opener(urllib2.HTTPCookieProcessor(cjTestLy))
+
+    #opener创建完成
+    try:
+        responseTT = openerLy.open(req,timeout = 10)
+
+        strHtml = responseTT.read()
+        strFinalURL = responseTT.geturl()
+       # print(strHtml)
+
+        print 'liyangDownloadHtml:',strFinalURL
+        #print responseTT.info()
+        '''
+        print '输出网址：',strFinalURL,'的cookie信息'
+        for item in cjTestLy:
+           print 'Name = '+item.name ,'  :  ','Value = '+item.value
+        print 'cookie信息输出结束！'
+        '''
+
+        responseTT.close()
+        print 'liyangDownloadHtml finish!'
+
+        return strHtml
+    except Exception,msg:
+        print '函数使用cookielib抛出异常'
+        print(Exception,msg)
+        print(msg)
+        if hasattr(msg, 'reason'):
+            print 'Reason: ', msg.reason
+        elif hasattr(msg, 'code'):
+            print 'Error code: ', msg.code
+
+
+
+    return '*****Finish the whole function!'
+
+#*************************************************************************************
+#*******从utf-8的文本中获取纯文本并返回给调用函数相应的纯文本
+#******传入参数必须是utf-8文本，
+#*************************************************************************************
+def fnRemoveAllHtmlElementFromHtmlDoc(strHtml):
+
+    reHtmlNote = re.compile('<!--.*?-->')
+    reHtmlpattern = re.compile('<[^>]*>')
+    strPureTxt = reHtmlNote.sub('',strHtml)
+    strPureTxt = reHtmlpattern.sub('',strPureTxt)
+
+    #去除文本中的空白行
+    reBank = re.compile('^\s[\s]*\s$',re.M)
+    strPureTxt = reBank.sub('',strPureTxt)
+
+    #去除文本中的爽行
+    reRandN = re.compile('\n\n')
+    strPureTxt = reRandN.sub('\n',strPureTxt)
+
+    #去除文本中的文字前的空白字符
+    reBankBeforTxt = re.compile('^\s\s*',re.M)
+    strPureTxt = reBankBeforTxt.sub('',strPureTxt)
+
+    return strPureTxt
+
+#*************************************************************************************
+#*******从utf-8的文本中获取纯文本并返回给调用函数相应的纯文本
+#*************************************************************************************
+def fnGetPureTextFromHtml(strHtml,iTextMinNum = 8):
+
+    bsLY = BeautifulSoup(strHtml,'html.parser')
+
+    attrsTarget = {'class':'tr1 do_not_catch'}
+    strRet = ''
+    for xTT in bsLY.findAll(name = 'tr',attrs = attrsTarget):
+        strHtmlInfo = (xTT.th.prettify()).encode('utf-8')
+        strPureTextInfo = fnRemoveAllHtmlElementFromHtmlDoc(strHtmlInfo)
+
+        strHtmlContent = ((xTT.th.find_next(name='div',attrs={'class':'tpc_content do_not_catch'})).prettify()).encode('utf-8')
+        strPureTextContent = fnRemoveAllHtmlElementFromHtmlDoc(strHtmlContent)
+        if len(strPureTextContent) > iTextMinNum:
+            strRet += '\n'
+            strRet += strPureTextContent
+
+    return strRet
+
+
+def fnGetPureTextFromOtherHtml(strHtml,iTextMinNum = 8):
+
+    bsLY = BeautifulSoup(strHtml,'html.parser')
+
+    attrsTarget = {'style':'width:20%','class':'r_two'}
+    strRet = ''
+    for xTT in bsLY.findAll(name = 'th',attrs = attrsTarget):
+        strHtmlInfo = (xTT.prettify()).encode('utf-8')
+        strPureTextInfo = fnRemoveAllHtmlElementFromHtmlDoc(strHtmlInfo)
+
+        strHtmlContent = ((xTT.find_next(name='div',attrs={'class':'tpc_content'})).prettify()).encode('utf-8')
+        strPureTextContent = fnRemoveAllHtmlElementFromHtmlDoc(strHtmlContent)
+
+        if len(strPureTextContent) > iTextMinNum:
+            strRet += '********************************\n'
+            strRet += strPureTextContent
+
+    return strRet
+
+
+#*************************************************************************************
+#*******业务代码
+#*************************************************************************************
+def fnDownloadCLText(strURL,iTextMinNum = 8):
+    #Download text for every comment that text's num is larger then iTextNum
+    strHtml = fnDownloadHtmlWithProxyAndCookie(strURL)
+    if strHtml[0] == '*':
+        return "***Download Error!"
+
+
+    '''
+
+    fileTxt = open('F:\\PyPrj\\TestTempTxt\\CL.txt',"w")
+    fileTxt.write(strHtml)
+    fileTxt.close()
+
+    fileTxt = open('F:\\PyPrj\\TestTempTxt\\CL.txt',"r")
+    strHtml = fileTxt.read()
+    fileTxt.close()
+
+    '''
+
+    bsLY = BeautifulSoup(strHtml,'html.parser')
+
+    #查找特定属性的标签，
+    attrsTarget = {'type':'text','style':'width:50px;'}
+    xTT=bsLY.findAll(name = 'input',attrs = attrsTarget)
+    if xTT == []:
+        print 'Error!!!There is no page num and information!'
+        return '*****Do not find the page num!'#未找到特定字符串，必须直接返回，我发进行后续操作
+
+    strPageNumInfo = xTT[0].get('value')
+    #本url拥有的页面数量
+    iAllPageCount = int(strPageNumInfo.split('/')[-1])
+
+    strOthersURLHead = ''
+    strNextPageURL = (xTT[0].find_next(name='a')).get('href')
+    if len(strNextPageURL) > 2:
+        strHost = '/'.join(strURL.split('/')[0:3])
+        strOthersURLHead = strHost+'/'+(strNextPageURL[:strNextPageURL.find('&page=')+6]).split('/')[-1]
+
+
+
+    strFirstPageText = fnGetPureTextFromHtml(strHtml,iTextMinNum)
+
+    #print strFirstPageText iAllPageCount
+
+    for iLoop in range(2,iAllPageCount+1):
+        strLoopURL = strOthersURLHead + str(iLoop)
+        strOtherHtml = fnDownloadHtmlWithProxyAndCookie(strLoopURL)
+        strFirstPageText =  strFirstPageText + fnGetPureTextFromOtherHtml(strOtherHtml,iTextMinNum)
+
+
+
+
+    '''
+    attrsTarget = {'class':'pages'}
+    for xTT in bsLY.findAll(name = 'div',attrs = attrsTarget):
+        print '#########'
+        print xTT
+        print  xTT.get("lass")
+        if xTT.get('lass') == None :
+            print '***************'
+        for child in xTT.children:
+            print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+            print child.name
+#print type(xTT.descendants)
+'''
+
+
+    fnWriteTxtFile(strFirstPageText)
+
+    return 'Successed!'
+
+
+
+#*************************************************************************************
+#*************************************************************************************
+#*******以下代码为main代码部分，顺序进行执行
+#*************************************************************************************
+#*************************************************************************************
+def main():
+    strCLURL = 'http://t66y.com/htm_data/7/1610/2115436.html'
+    #strCLURL = 'http://t66y.com/htm_data/7/1605/1580571.html'
+
+    fnDownloadCLText(strCLURL,58)
+
+
+
+
+
+if __name__ == '__main__':
+    main()
+
+
+
+
+
+
+
+
+
+
+
