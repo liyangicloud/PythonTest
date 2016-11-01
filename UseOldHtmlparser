@@ -1,0 +1,59 @@
+#coding=utf-8
+import cStringIO
+import httplib
+from htmllib import HTMLParser
+import urllib
+import urllib2
+import urlparse
+import formatter
+
+
+def main():
+
+    try:
+        res = urllib2.urlopen("http://www.sohu.com/index.html")
+        strHtml = res.read()
+        res.close()
+
+    except (IOError,httplib.InvalidURL) as e:
+        print e
+        return e
+
+    #print strHtml
+    #************************************************************************************************
+    #这段代码获取所解析的网页中的所有超链接，可以复用的三行代码
+    parser = HTMLParser(formatter.AbstractFormatter(formatter.DumbWriter(cStringIO.StringIO())))
+    parser.feed(strHtml)
+    parser.close()
+    #**************************************************************************************************
+
+    print parser.anchorlist
+    for xTT in parser.anchorlist:
+        #print xTT
+        pass
+
+
+    url = "http://AAA@BBB:www.baidu.com.cn/index.html"
+
+    parsed = urlparse.urlparse(url)
+    print parsed
+
+    host = parsed.netloc.split('@')[-1].split(':')[-1]
+
+    print  parsed.netloc.split('@')
+    print  parsed.netloc.split('@')[-1]
+    print  parsed.netloc.split('@')[-1].split(':')
+    print  parsed.netloc.split('@')[-1].split(':')[-1]
+
+    print host
+
+    dd = '.'.join(host.split('.')[1:])
+
+    print dd
+
+
+
+
+
+if __name__ == '__main__':
+    main()
