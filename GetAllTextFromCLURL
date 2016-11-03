@@ -9,7 +9,8 @@ import urllib2
 import cookielib
 from bs4 import BeautifulSoup
 from HTMLParser import HTMLParser
-
+#import sys
+#sys.setrecursionlimit(10000)
 #proxy http://127.0.0.1:16823/
 #win10 chrome    'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36'
 #mac os chrome   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'
@@ -167,7 +168,7 @@ def fnWriteTxtFile(strFileContent):
 函数功能：不适用代理进行下载
 '''
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-def fnDownloadHtml(strDestURLAdd):
+def fnDownloadHtmlWithCookie(strDestURLAdd):
 
     dicHeaders = {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
               #伪装成mac os 的浏览器进行访问
@@ -292,7 +293,7 @@ def fnGetPureTextFromOtherHtml(strHtml,iTextMinNum = 8):
 
 
 #*************************************************************************************
-#*******业务代码
+#*******业务代码，下载第一页的文字
 #*************************************************************************************
 def fnDownloadCLText(strURL,iTextMinNum = 8):
     #Download text for every comment that text's num is larger then iTextNum
@@ -365,6 +366,139 @@ def fnDownloadCLText(strURL,iTextMinNum = 8):
 
     return 'Successed!'
 
+#*************************************************************************************
+#*******下载url指定的文件，并将该文件保存到目标路径
+#*************************************************************************************
+def fnGetURLFileToLocalFile(strURL,strLocalFile):
+    #
+    dicHeaders = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36'
+              #伪装成mac os 的浏览器进行访问
+
+              #反盗链控制选项referer，检查访问该网址的是不是自己认同的请求者
+              #主要用于在使用服务器提供的 RESTful 或 SOAP 服务时， Content-Type 设置错误会导致服务器拒绝服务
+              }
+    #构造合适的request对象，用于后面的发送操作
+    req = urllib2.Request(strURL,None,dicHeaders)
+    try:
+        responseTT = urllib2.urlopen(req)
+
+        strHtml = responseTT.read()
+        strFinalURL = responseTT.geturl()
+        responseTT.close()
+
+        handleFile = open(strLocalFile,"wb")
+        handleFile.write(strHtml)
+        handleFile.close()
+        return strFinalURL
+    except Exception,msg:
+        print '函数使用cookielib抛出异常'
+        print(Exception,msg)
+        print(msg)
+        if hasattr(msg, 'reason'):
+            print 'Reason: ', msg.reason
+        elif hasattr(msg, 'code'):
+            print 'Error code: ', msg.code
+        return '*****Error occurred!'
+
+
+    return '*****Finish the whole function!'
+
+#*************************************************************************************
+#*******使用代理服务器下载url指定的文件，并将该文件保存到目标路径
+#*************************************************************************************
+def fnGetURLFileToLocalFileWithProxy(strURL,strLocalFile):
+    #
+    dicHeaders = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36'
+              #伪装成mac os 的浏览器进行访问
+
+              #反盗链控制选项referer，检查访问该网址的是不是自己认同的请求者
+              #主要用于在使用服务器提供的 RESTful 或 SOAP 服务时， Content-Type 设置错误会导致服务器拒绝服务
+              }
+    #构造合适的request对象，用于后面的发送操作
+    req = urllib2.Request(strURL,None,dicHeaders)
+
+
+    #构造代理服务器的handler，
+    handlerProxy = urllib2.ProxyHandler({'http':'http://127.0.0.1:8787'})
+    openerLy = urllib2.build_opener(handlerProxy)
+
+
+    try:
+        responseTT = openerLy.open(req)
+
+        strHtml = responseTT.read()
+        strFinalURL = responseTT.geturl()
+        responseTT.close()
+
+        handleFile = open(strLocalFile,"wb")
+        handleFile.write(strHtml)
+        handleFile.close()
+        return strFinalURL
+    except Exception,msg:
+        print '函数使用cookielib抛出异常'
+        print(Exception,msg)
+        print(msg)
+        if hasattr(msg, 'reason'):
+            print 'Reason: ', msg.reason
+        elif hasattr(msg, 'code'):
+            print 'Error code: ', msg.code
+        return '*****Error occurred!'
+
+
+    return '*****Finish the whole function!'
+
+#*************************************************************************************
+#*******下载第一页的html文档，找出所有的img地址
+#*************************************************************************************
+def fnDownloadCLImg(strURL,iImgMinSize = 50):
+    #Download text for every comment that text's num is larger then iTextNum
+    strHtml = fnDownloadHtmlWithProxyAndCookie(strURL)
+    if strHtml[0] == '*':
+        return "***Download Error!"
+
+
+    '''
+
+    fileTxt = open('F:\\PyPrj\\TestTempTxt\\CL.txt',"w")
+    fileTxt.write(strHtml)
+    fileTxt.close()
+
+    fileTxt = open('F:\\PyPrj\\TestTempTxt\\CL.txt',"r")
+    strHtml = fileTxt.read()
+    fileTxt.close()
+
+    '''
+
+    #整理html文档，更正一些不规范的标签
+    #
+    strHtml = strHtml.replace('<br>','<br/>')
+    strHtml = re.sub(r'(<img.*?)>',r'\1/>',strHtml)
+
+    bsLY = BeautifulSoup(strHtml,'html.parser')
+    #查找特定属性的标签，
+    attrsTarget = {'class':'tpc_content do_not_catch'}
+    xTT=bsLY.findAll(name = 'div',attrs = attrsTarget)
+
+
+    if xTT == []:
+        print 'Error!!!There is no page num and information!'
+        return '*****Do not find the page num!'#未找到特定字符串，必须直接返回，我发进行后续操作
+
+#    str = xTT[0].prettify #(xTT[0].prettify()).encode('utf-8')
+    i = 0
+    strFileDir = 'F:\\PyPrj\\TestTempImg\\'
+    for x in xTT[0].findAll(name = 'img'):
+        strImgURL = x.get('src')
+        i += 1
+        print (i,strImgURL)
+        fnGetURLFileToLocalFileWithProxy(strImgURL,strFileDir+strImgURL.split('/')[-1])
+        #time.sleep(4)
+
+
+
+
+    return '$$$$Successed!'
+
 
 
 #*************************************************************************************
@@ -375,9 +509,12 @@ def fnDownloadCLText(strURL,iTextMinNum = 8):
 def main():
     strCLURL = 'http://t66y.com/htm_data/7/1610/2115436.html'
     #strCLURL = 'http://t66y.com/htm_data/7/1605/1580571.html'
+    strCLURL = 'http://t66y.com/htm_data/7/1610/2111235.html'#download image from cl
 
-    fnDownloadCLText(strCLURL,58)
+    #fnDownloadCLText(strCLURL,58)
+    fnDownloadCLImg(strCLURL)
 
+    #fnGetURLFileToLocalFile("https://ws3.sinaimg.cn/large/9ffb8df8gw1f922985mkij20ff09z754.jpg","f:\\a.jpg")
 
 
 
