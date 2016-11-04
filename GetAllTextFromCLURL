@@ -503,16 +503,64 @@ def fnDownloadCLImg(strURL,iImgMinSize = 50):
 
 #*************************************************************************************
 #*************************************************************************************
+def fnDownloadCLImgFromDaergai(strURL,iImgMinSize = 50):
+    #Download text for every comment that text's num is larger then iTextNum
+    strHtml = fnDownloadHtmlWithProxyAndCookie(strURL)
+    if strHtml[0] == '*':
+        return "***Download Error!"
+
+
+
+    #整理html文档，更正一些不规范的标签
+    #
+    strHtml = strHtml.replace('<br>','<br/>')
+    strHtml = re.sub(r'(<input.*?)>',r'\1/>',strHtml)
+
+    bsLY = BeautifulSoup(strHtml,'html.parser')
+    #查找特定属性的标签，
+    attrsTarget = {'class':'tpc_content do_not_catch'}
+    xTT=bsLY.findAll(name = 'div',attrs = attrsTarget)
+
+
+    if xTT == []:
+        print 'Error!!!There is no page num and information!'
+        return '*****Do not find the page num!'#未找到特定字符串，必须直接返回，我发进行后续操作
+
+#    str = xTT[0].prettify #(xTT[0].prettify()).encode('utf-8')
+    i = 0
+    strFileDir = 'F:\\PyPrj\\TestTempImg\\'
+    for x in xTT[0].findAll(name = 'input'):
+        strImgURL = x.get('src')
+        i += 1
+        if strImgURL == '':
+            continue
+        print (i,strImgURL)
+        fnGetURLFileToLocalFileWithProxy(strImgURL,(strFileDir+strImgURL.split('=')[-1]).replace('&','.'))
+
+
+
+
+    return '$$$$Successed!'
+
+
+
+
+
+
+
+#*************************************************************************************
+#*************************************************************************************
 #*******以下代码为main代码部分，顺序进行执行
 #*************************************************************************************
 #*************************************************************************************
 def main():
     strCLURL = 'http://t66y.com/htm_data/7/1610/2115436.html'
     #strCLURL = 'http://t66y.com/htm_data/7/1605/1580571.html'
-    strCLURL = 'http://t66y.com/htm_data/7/1610/2111235.html'#download image from cl
+    strCLURL = 'http://t66y.com/htm_data/16/1609/2087340.html'#download image from cl
 
     #fnDownloadCLText(strCLURL,58)
-    fnDownloadCLImg(strCLURL)
+    #fnDownloadCLImg(strCLURL)
+    fnDownloadCLImgFromDaergai(strCLURL)
 
     #fnGetURLFileToLocalFile("https://ws3.sinaimg.cn/large/9ffb8df8gw1f922985mkij20ff09z754.jpg","f:\\a.jpg")
 
