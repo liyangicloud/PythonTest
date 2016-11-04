@@ -593,10 +593,15 @@ def fnAnalysisTheFirstPageToGetCode(strCLURL,iFromThisRowBegin = 9):
 #*************************************************************************************
 #*************************************************************************************
 g_bIsToGetCode = False
-g_strDestStr = u'大海'
+g_strDestStr = u'Test'
 def fnMainLoopToAnalysisCL():
+    #技术区
     strCLURL = 'http://t66y.com/thread0806.php?fid=7'
     strOtherCLURL = 'http://t66y.com/thread0806.php?fid=7&search=&page='
+
+   #达尔盖区
+    strCLURL = 'http://t66y.com/thread0806.php?fid=16'
+    strOtherCLURL= 'http://t66y.com/thread0806.php?fid=16&search=&page='
 
     fnAnalysisTheFirstPageToGetCode(strCLURL)
 
